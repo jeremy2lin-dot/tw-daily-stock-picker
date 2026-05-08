@@ -84,7 +84,10 @@ def _post_raw(bot_token: str, method: str, body: bytes, content_type: str) -> No
     try:
         with urlopen(request, timeout=30) as response:
             payload = json.loads(response.read().decode("utf-8"))
-    except (HTTPError, URLError, TimeoutError) as exc:
+    except HTTPError as exc:
+        details = exc.read().decode("utf-8", errors="replace")
+        raise RuntimeError(f"failed to call Telegram {method}: HTTP {exc.code} {details}") from exc
+    except (URLError, TimeoutError) as exc:
         raise RuntimeError(f"failed to call Telegram {method}: {exc}") from exc
     if not payload.get("ok"):
         raise RuntimeError(f"Telegram {method} failed: {payload}")
