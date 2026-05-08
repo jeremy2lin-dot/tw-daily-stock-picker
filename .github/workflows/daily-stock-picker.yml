@@ -1,0 +1,42 @@
+name: Daily Taiwan Stock Picker
+
+on:
+  schedule:
+    # 16:00 Asia/Taipei = 08:00 UTC. GitHub cron uses UTC.
+    - cron: "0 8 * * 1-5"
+  workflow_dispatch:
+
+jobs:
+  pick-stocks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install package
+        run: pip install -e .
+
+      - name: Run daily picker and notify Telegram
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: >
+          tw-stock-picker
+          --skip-non-trading-day
+          --telegram
+          --send-report-file
+
+      - name: Upload CSV report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: stock-picker-reports
+          path: reports/*.csv
+          if-no-files-found: ignore

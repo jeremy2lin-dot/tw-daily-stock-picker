@@ -1,0 +1,18 @@
+lookback_days = 180
+min_history_days = 70
+
+min_price = 0
+min_avg_volume = 0
+min_volume_ratio = 0
+max_rsi14 = 101
+
+require_ma_alignment = false
+require_price_above_ma20 = false
+require_20_day_breakout = false
+
+require_limit_up = true
+limit_up_threshold = 0.095
+min_net_income_after_tax = 0
+min_roe = 15
+
+top_n = 20
