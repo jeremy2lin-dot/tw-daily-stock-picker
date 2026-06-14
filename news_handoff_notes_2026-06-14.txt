@@ -1,0 +1,233 @@
+每日新聞 Telegram 推送專案交接記錄
+====================================
+
+整理日期
+--------
+- 2026-06-14
+
+
+專案位置
+--------
+- 本機工作區：D:\10-每日自動選股功能
+- GitHub repository：https://github.com/jeremy2lin-dot/tw-daily-stock-picker
+- GitHub default branch：main
+
+
+目前專案目標
+------------
+原本這個 repository 是「台股每日自動選股」專案。這次迭代後，使用者要求移除原本 GitHub 上的每日選股程式，只保留每日新聞 Telegram 推送功能。
+
+目前功能：
+- 每天台北時間 08:00 自動執行 GitHub Actions。
+- 抓取新聞 RSS。
+- 透過 Telegram 發送新聞標題與連結。
+- 目前只發送兩個分類：
+  - 國際：最近 10 則
+  - 財經：最近 10 則
+- 訊息內容只包含標題和連結，不包含摘要、來源、時間。
+
+
+目前 GitHub Actions
+------------------
+保留：
+- .github/workflows/daily-news.yml
+  - Workflow name：Daily News Telegram Update
+  - schedule：0 0 * * *
+  - 等同台北時間每天 08:00
+  - 支援 workflow_dispatch，可手動執行
+  - 執行指令：tw-daily-news --telegram
+
+已移除：
+- .github/workflows/daily-stock-picker.yml
+  - 原本每日選股排程已刪除
+
+
+Telegram 設定
+-------------
+GitHub Actions 使用 repository secrets：
+- TELEGRAM_BOT_TOKEN
+- TELEGRAM_CHAT_ID
+
+這兩個 secret 已沿用原本選股專案的 Telegram 設定。不要把 token 或 chat id 寫進 workflow YAML 或 commit。
+
+
+新聞來源設定
+------------
+設定檔：
+- config/news_feeds.toml
+
+目前內容重點：
+- max_items_per_category = 10
+- 國際：
+  - https://feeds.feedburner.com/rsscna/intworld
+- 財經：
+  - https://feeds.feedburner.com/rsscna/finance
+
+來源目前使用中央社 RSS。
+
+
+主要程式結構
+------------
+- pyproject.toml
+  - project name 已改為 tw-daily-news
+  - console script：
+    - tw-daily-news = tw_stock_picker.news_cli:main
+
+- src/tw_stock_picker/news_cli.py
+  - CLI 入口
+  - 支援：
+    - --config，預設 config/news_feeds.toml
+    - --as-of，指定日期測試
+    - --telegram，發送到 Telegram
+
+- src/tw_stock_picker/news.py
+  - 讀取 TOML 設定
+  - 抓取 RSS / Atom
+  - 去重新聞標題
+  - 組成 Telegram 訊息
+  - 目前訊息格式只輸出：
+    - 分類名稱
+    - 編號
+    - 標題
+    - 連結
+
+- src/tw_stock_picker/telegram.py
+  - Telegram sendMessage API wrapper
+  - 已移除選股訊息與 sendDocument 報表上傳功能
+
+- src/tw_stock_picker/settings.py
+  - 從環境變數讀 TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID
+
+- src/tw_stock_picker/calendar.py
+  - 仍保留 taipei_today，新聞 CLI 用來取得台北日期
+  - trading_day_status / load_holidays 目前只有測試仍涵蓋，新聞功能本身只用 taipei_today
+
+- tests/test_news.py
+  - 驗證每日新聞訊息只保留標題與連結
+  - 驗證空分類提示
+
+- tests/test_calendar.py
+  - 日期工具測試
+
+
+已刪除的選股相關檔案
+--------------------
+- .github/workflows/daily-stock-picker.yml
+- config/strategy.toml
+- config/twse_holidays_2026.csv
+- config/watchlist.csv
+- src/tw_stock_picker/cli.py
+- src/tw_stock_picker/data.py
+- src/tw_stock_picker/indicators.py
+- src/tw_stock_picker/report.py
+- src/tw_stock_picker/strategy.py
+- tests/test_strategy.py
+- tests/test_telegram.py
+
+
+重要 commit 記錄
+----------------
+- 9aa9267 Add daily news Telegram update
+  - 新增每日新聞推送功能、daily-news workflow、RSS 設定、新聞 CLI。
+
+- d979614 Simplify daily news Telegram format
+  - 調整成只發國際與財經，每類 10 則，只含標題和連結。
+
+- 9eaa60d Remove daily stock picker automation
+  - 移除原本每日選股程式與 workflow，只保留新聞推送。
+
+測試發送用過的一次性 workflow commit：
+- 722f9b1 Add one-time news dispatch workflow
+- 36eb632 Remove one-time news dispatch workflow
+- 52accfb Trigger daily news test send
+- ea35439 Remove daily news test workflow
+
+這些一次性 workflow 已移除，正式每日新聞 workflow 仍保留。
+
+
+使用者偏好與決策
+----------------
+1. 一開始使用者想要每日新聞更新發送功能。
+2. 先建立過 Codex thread 內的每日新聞自動化，但後續改成整合到既有 GitHub/Telegram 專案。
+3. 使用者希望發送到 Telegram。
+4. 原本新聞格式包含台灣、國際、科技、財經與摘要；使用者收到測試訊息後要求簡化。
+5. 最終定版格式：
+   - 只要財經、國際
+   - 最近新聞前 10 條
+   - 只保留標題
+   - 每條附上連結
+6. 使用者後來要求移除原本 GitHub 的每日選股程式，因此 repository 現在應視為「每日新聞 Telegram 推送」專案。
+
+
+已驗證項目
+----------
+本機測試：
+- python -m pytest
+  - 最後狀態：5 passed
+
+本機新聞預覽：
+- python -m tw_stock_picker.news_cli --as-of 2026-06-14
+  - 可正常輸出國際與財經各 10 則新聞標題與連結
+
+Telegram 測試發送：
+- 使用一次性 GitHub Actions workflow 觸發過兩次
+- 使用者確認有收到 Telegram 訊息
+- 最近一次測試 run：
+  - https://github.com/jeremy2lin-dot/tw-daily-stock-picker/actions/runs/27496583020
+  - conclusion：success
+
+
+目前工作區注意事項
+------------------
+- git status 仍顯示一個未追蹤檔：
+  - handoff_notes.txt
+- 這是先前舊交接檔，這次沒有覆蓋或提交。
+- 本交接檔是新建立的：
+  - news_handoff_notes_2026-06-14.txt
+
+
+下次迭代建議
+------------
+1. 可以考慮把 package/module 名稱從 tw_stock_picker 改成 tw_daily_news，讓專案名稱與程式名稱完全一致。
+   - 目前只有 pyproject project name 改成 tw-daily-news。
+   - Python package 仍叫 tw_stock_picker，為了降低這次移除選股功能的風險暫時保留。
+
+2. 可以把 calendar.py 裡選股用的 holiday/trading_day 函式移除，只保留 taipei_today。
+   - 目前測試仍保留，所以不影響功能。
+
+3. 如果使用者想要其他來源，可以只改 config/news_feeds.toml。
+   - 例如加入 BBC 中文、Reuters 中文、鉅亨、MoneyDJ、工商時報 RSS 等。
+
+4. 如果想避免國際與財經重複新聞，可在 collect_news 層級做跨分類去重。
+   - 目前只在同分類內去重。
+
+5. 若想讓手動測試更方便，可以新增 workflow_dispatch inputs，例如：
+   - dry_run
+   - max_items
+   - categories
+
+
+常用指令
+--------
+本機測試：
+python -m pytest
+
+本機預覽：
+python -m tw_stock_picker.news_cli
+
+指定日期預覽：
+python -m tw_stock_picker.news_cli --as-of 2026-06-14
+
+本機 Telegram 發送：
+$env:TELEGRAM_BOT_TOKEN = "..."
+$env:TELEGRAM_CHAT_ID = "..."
+tw-daily-news --telegram
+
+
+下一位 Codex 注意事項
+--------------------
+- 不要重新加入每日選股 workflow，除非使用者明確要求恢復選股。
+- 不要提交 Telegram token 或 chat id。
+- 若要測試 Telegram，但本機沒有 token，可用臨時 push-trigger workflow 觸發 GitHub Secrets；測完務必移除該一次性 workflow。
+- 使用者偏好 Telegram 訊息簡短、只要標題與連結。
+- 目前每日新聞正式排程已可用，不需再建立 Codex thread 內的新聞提醒。
