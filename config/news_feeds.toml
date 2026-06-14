@@ -1,23 +1,9 @@
-max_items_per_category = 3
-
-[[categories]]
-name = "台灣"
-feeds = [
-  "https://feeds.feedburner.com/rsscna/politics",
-  "https://feeds.feedburner.com/rsscna/social",
-  "https://feeds.feedburner.com/rsscna/local",
-]
+max_items_per_category = 10
 
 [[categories]]
 name = "國際"
 feeds = [
   "https://feeds.feedburner.com/rsscna/intworld",
-]
-
-[[categories]]
-name = "科技"
-feeds = [
-  "https://feeds.feedburner.com/rsscna/technology",
 ]
 
 [[categories]]

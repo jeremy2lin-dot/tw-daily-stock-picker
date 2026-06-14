@@ -118,11 +118,7 @@ def build_news_message(report_date: date, sections: list[NewsSection], max_lengt
         lines.append(f"{section.name}")
         if section.items:
             for index, item in enumerate(section.items, start=1):
-                source = f"｜{item.source}" if item.source else ""
-                published = f"｜{item.published_at}" if item.published_at else ""
-                lines.append(f"{index}. {item.title}{source}{published}")
-                if item.summary:
-                    lines.append(f"   {item.summary}")
+                lines.append(f"{index}. {item.title}")
                 lines.append(f"   {item.link}")
         else:
             lines.append("暫時沒有取得新聞。")

@@ -27,8 +27,11 @@ def test_build_news_message_groups_items_by_category() -> None:
 
     assert "每日新聞更新 2026-06-14" in message
     assert "科技" in message
-    assert "AI 晶片需求升溫｜Example News｜06/14 08:00" in message
+    assert "AI 晶片需求升溫" in message
     assert "https://example.com/ai-chip" in message
+    assert "Example News" not in message
+    assert "06/14 08:00" not in message
+    assert "供應鏈訂單增加。" not in message
 
 
 def test_build_news_message_reports_empty_category() -> None:
