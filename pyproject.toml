@@ -1,12 +1,11 @@
 [project]
-name = "tw-daily-stock-picker"
+name = "tw-daily-news"
 version = "0.1.0"
-description = "Daily Taiwan stock screener with configurable technical filters."
+description = "Daily Telegram news update sender."
 requires-python = ">=3.11"
 dependencies = []
 
 [project.scripts]
-tw-stock-picker = "tw_stock_picker.cli:main"
 tw-daily-news = "tw_stock_picker.news_cli:main"
 
 [tool.pytest.ini_options]
