@@ -1,6 +1,6 @@
 # 台股每日自動選股
 
-這個專案用 GitHub Actions 在台股收盤後自動執行選股，並透過 Telegram 傳送結果。
+這個專案用 GitHub Actions 在台股收盤後自動執行選股，並透過 Telegram 傳送結果；也可以每天早上自動發送新聞摘要到同一個 Telegram。
 
 > 這是研究與自動化工具，不是投資建議。實際交易前請自行確認資料、流動性、風險與交易成本。
 
@@ -11,6 +11,13 @@ GitHub Actions 設定在：
 - 台北時間：每週一至週五 16:00
 - UTC：每週一至週五 08:00
 - Workflow：[daily-stock-picker.yml](.github/workflows/daily-stock-picker.yml)
+
+每日新聞摘要設定在：
+
+- 台北時間：每天 08:00
+- UTC：每天 00:00
+- Workflow：[daily-news.yml](.github/workflows/daily-news.yml)
+- 新聞來源設定：[news_feeds.toml](config/news_feeds.toml)
 
 程式會在執行時檢查：
 
@@ -109,6 +116,14 @@ tw-stock-picker --skip-non-trading-day
 $env:TELEGRAM_BOT_TOKEN = "你的 BOT TOKEN"
 $env:TELEGRAM_CHAT_ID = "你的 CHAT ID"
 tw-stock-picker --skip-non-trading-day --telegram --send-report-file
+```
+
+測試每日新聞：
+
+```powershell
+$env:TELEGRAM_BOT_TOKEN = "你的 BOT TOKEN"
+$env:TELEGRAM_CHAT_ID = "你的 CHAT ID"
+tw-daily-news --telegram
 ```
 
 ## 休市日維護

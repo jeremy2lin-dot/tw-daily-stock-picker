@@ -7,6 +7,7 @@ dependencies = []
 
 [project.scripts]
 tw-stock-picker = "tw_stock_picker.cli:main"
+tw-daily-news = "tw_stock_picker.news_cli:main"
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]

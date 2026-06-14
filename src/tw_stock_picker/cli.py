@@ -1,16 +1,15 @@
 from __future__ import annotations
 
 import argparse
-import os
-import sys
 from datetime import date
 from pathlib import Path
 
 from .calendar import load_holidays, taipei_today, trading_day_status
 from .data import FinMindClient, YahooChartClient, load_watchlist
 from .report import write_picks_csv
+from .settings import telegram_config_from_env
 from .strategy import load_strategy, screen_stocks
-from .telegram import TelegramConfig, build_message, send_document, send_message
+from .telegram import build_message, send_document, send_message
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -34,7 +33,7 @@ def main() -> None:
     output_dir = Path(args.output_dir)
     report_date = date.fromisoformat(args.as_of) if args.as_of else taipei_today()
 
-    telegram_config = _telegram_config() if args.telegram else None
+    telegram_config = telegram_config_from_env() if args.telegram else None
     holidays = load_holidays(holidays_path)
     status = trading_day_status(report_date, holidays)
     if args.skip_non_trading_day and not status.is_trading_day:
@@ -63,16 +62,7 @@ def main() -> None:
     if telegram_config:
         send_message(telegram_config, message)
         if args.send_report_file:
-            send_document(telegram_config, report_path, f"{report_date.isoformat()} 台股選股報表")
-
-
-def _telegram_config() -> TelegramConfig:
-    bot_token = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
-    chat_id = os.environ.get("TELEGRAM_CHAT_ID", "").strip()
-    if not bot_token or not chat_id:
-        print("TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID are required when --telegram is used.", file=sys.stderr)
-        raise SystemExit(2)
-    return TelegramConfig(bot_token=bot_token, chat_id=chat_id)
+        send_document(telegram_config, report_path, f"{report_date.isoformat()} 台股選股報表")
 
 
 if __name__ == "__main__":
