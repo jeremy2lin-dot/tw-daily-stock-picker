@@ -1,10 +1,6 @@
 name: Daily News Telegram Update
 
 on:
-  schedule:
-    # 07:45 Asia/Taipei = 23:45 UTC on the previous day.
-    # The job waits until 08:00 Asia/Taipei before sending.
-    - cron: "45 23 * * *"
   workflow_dispatch:
 
 jobs:
@@ -23,19 +19,6 @@ jobs:
 
       - name: Install package
         run: pip install -e .
-
-      - name: Wait until 08:00 Asia/Taipei
-        shell: bash
-        run: |
-          now=$(TZ=Asia/Taipei date +%s)
-          target=$(TZ=Asia/Taipei date -d "today 08:00" +%s)
-          if [ "$now" -lt "$target" ]; then
-            sleep_seconds=$((target - now))
-            echo "Waiting ${sleep_seconds}s until 08:00 Asia/Taipei."
-            sleep "$sleep_seconds"
-          else
-            echo "Already past 08:00 Asia/Taipei; sending immediately."
-          fi
 
       - name: Send daily news to Telegram
         env:
